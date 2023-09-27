@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>My first three.js app</title>
+  <style>
+    body { margin: 0; }
+  </style>
+</head>
+<body>
+<script type="importmap">
+    {
+        "imports" : {
+            "three" : "../three.js-master/build/three.module.js",
+            "three/addons/" : "../three.js-master/examples/jsm/"
+        }
+    }
+</script>
+<script type="module">
+  import * as THREE from "three";
+  import {OrbitControls} from "three/addons/controls/OrbitControls.js";
+  import {GLTFLoader} from "three/addons/loaders/GLTFLoader.js";
+  import {DRACOLoader} from "three/addons/loaders/DRACOLoader.js";
+
+  const gltfLoader = new GLTFLoader();
+  const dracoLoader = new DRACOLoader();
+  dracoLoader.setDecoderPath('../three.js-master/node_modules/three/examples/jsm/libs/draco/');
+  gltfLoader.setDRACOLoader(dracoLoader);
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+  // 增加坐标系红色代表 X 轴. 绿色代表 Y 轴. 蓝色代表 Z 轴.
+  // 显示三维坐标系
+  const axes = new THREE.AxesHelper(20);
+  // 添加坐标系到场景中
+  scene.add(axes);
+  // gltfLoader.setPath('../three.js-master/examples/models/gltf/')
+  gltfLoader.setPath('../three.js-master/examples/models/gltf/DamagedHelmet/glTF/')
+          .load('DamagedHelmet.gltf', function (gltf) {
+            console.log("gltf",gltf)
+            gltf.scene.rotation.y = Math.PI;
+            gltf.scene.scale.set(1, 1, 1)
+            gltf.scene.traverse(function (child) {
+              if (child instanceof THREE.Mesh) {
+                child.castShadow = true; //阴影
+                child.receiveShadow = true; //接受别人投的阴影
+              }
+            });
+            scene.add(gltf.scene);
+          }, function(res){
+            console.log(res.total, res.loaded)
+          });
+  //添加一个白色点光源
+  const light = new THREE.PointLight(0xffffff, 1, 100, 1);
+  light.position.set(0, 10, 10);
+  scene.add(light);
+  const renderer = new THREE.WebGLRenderer();
+  renderer.setClearColor(new THREE.Color(0xbbbbbb));
+  renderer.setSize( window.innerWidth, window.innerHeight );
+  document.body.appendChild( renderer.domElement );
+
+  const controls = new OrbitControls(camera,renderer.domElement);//创建控件对
+
+  const geometry = new THREE.BoxGeometry();
+  const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+  const cube = new THREE.Mesh( geometry, material );
+  // scene.add( cube );
+
+  camera.position.z = 5;
+
+  function animate() {
+    requestAnimationFrame( animate );
+
+    cube.rotation.x += 0.01;
+    cube.rotation.y += 0.01;
+
+    renderer.render( scene, camera );
+  };
+
+  animate();
+</script>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="renderer" content="webkit">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=no"/>
+  <title>BimAngle.com - Trial version</title>
+  <link rel="stylesheet" type="text/css" href="http://fs3.bimangle.net/js/three-gltf-viewer/gltf-viewer.css">
+</head>
+<body>
+  <main class="wrap">
+    <div id="viewer-local" class="viewer"></div>
+    <div class="spinner"></div>
+  </main>
+  <script src="http://fs3.bimangle.net/js/three-gltf-viewer/gltf-viewer.js"></script>
+  <script>
+    //是否启用构件数据
+    const EnableElementData = true;
+  </script>
+  <script>
+
+    //three-gltf-viewer (BimAngle modified version)
+    //  dist: http://fs3.bimangle.net/js/three-gltf-viewer_dist.zip
+    //  src:  http://fs3.bimangle.net/js/three-gltf-viewer_src.zip
+
+    const hash = location.hash ? queryString.parse(location.hash) : {};
+    let modelUrl = hash.model ||'./洋房-建筑.gltf';
+
+    let element = document.getElementById('viewer-local');
+    let viewer = new Viewer(element, {}, EnableElementData);
+    viewer.load(modelUrl)
+        .then(onSuccess)
+        .catch(onError);
+
+    function onSuccess(){
+        let spinnerEl = document.querySelector('.spinner');
+        if(spinnerEl) spinnerEl.style.display = 'none';
+        console.log('Succeeded!');
+    }
+
+    function onError (error) {
+        let message = (error||{}).message || error.toString();
+        if (message.match(/ProgressEvent/)) {
+            message = 'Unable to retrieve this file. Check JS console and browser network tab.';
+        } else if (message.match(/Unexpected token/)) {
+            message = `Unable to parse file content. Verify that this file is valid. Error: "${message}"`;
+        } else if (error && error.target && error.target instanceof Image) {
+            message = 'Missing texture: ' + error.target.src.split('/').pop();
+        }
+        window.alert(message);
+        console.error(error);
+    }
+  </script>
+  <script>
+    function findElementNode(node){
+      if(node.userData && node.userData.DbId){
+        return node;
+      }
+      if(!!node.parent){
+        return findElementNode(node.parent);
+      }
+      return null;
+    }
+
+    //输出场景树到控制台
+    function printSceneTree(){
+      viewer.model.printTree(true);
+    }
+
+
+    if(EnableElementData)
+    {
+      document.addEventListener("click", function(e){
+        e.preventDefault();
+
+        // https://segmentfault.com/a/1190000010490845
+        //将鼠标点击位置的屏幕坐标转成threejs中的标准坐标,具体解释见代码释义
+        const x = (e.clientX / window.innerWidth) * 2 - 1;
+        const y = -(e.clientY / window.innerHeight) * 2 + 1;
+        const results = viewer.hitTest(x,y);
+        //console.log(result);
+
+        if(results && results.length > 0){
+          for(const r of results){
+            var node = findElementNode(r.object);
+            if(node != null){
+              const data = node.userData;
+              //r.object.material = viewer.selectionMaterialTop; //[viewer.selectionMaterialBase, r.object.material, viewer.selectionMaterialTop];
+              console.log(`Click DbId: ${data.DbId}, Name: ${data.name}, ExId:${data.ExId}`);
+
+              if(viewer.model && viewer.model.isReady){
+                const dbId = data.DbId;
+                //const dbIds = viewer.model.collectDbIds(dbId);
+                viewer.model.select(dbId);
+              }
+
+              break;
+            }
+          }
+        }else{
+          if(viewer.model && viewer.model.isReady){
+            //console.log(`Click DbId: None`);
+            viewer.model.select([]);
+          }
+        }
+      }
+    ,false);
+
+    /*document.addEventListener("mousemove", function(e){
+        e.preventDefault();
+
+        // https://segmentfault.com/a/1190000010490845
+        //将鼠标点击位置的屏幕坐标转成threejs中的标准坐标,具体解释见代码释义
+        const x = (e.clientX / window.innerWidth) * 2 - 1;
+        const y = -(e.clientY / window.innerHeight) * 2 + 1;
+        const results = viewer.hitTest(x,y);
+        //console.log(result);
+        if(results && results.length > 0){
+          for(const r of results){
+            var node = findElementNode(r.object);
+            if(node != null){
+              const data = node.userData;
+              //r.object.material = viewer.selectionMaterialTop; //[viewer.selectionMaterialBase, r.object.material, viewer.selectionMaterialTop];
+              console.log(`Hover DbId: ${data.DbId}, Name: ${data.name}, ExId:${data.ExId}`);
+
+              if(viewer.model && viewer.model.isReady){
+                const dbId = data.DbId;
+                //const dbIds = viewer.model.collectDbIds(dbId);
+                viewer.model.highlight(dbId);
+              }
+              break;
+            }
+          }
+        }else{
+          if(viewer.model && viewer.model.isReady){
+            //console.log(`Hover DbId: None`);
+            viewer.model.highlight([]);
+          }
+        }
+      }, false);*/
+
+    }
+  </script>
+</body>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>textGeometry</title>
+</head>
+<body>
+<div>
+    <button id="toggleWireframeButton">切换材质</button>
+    <button id="toggleClickButton">启用点击选中</button>
+    <button id="playExplosionAnimation">爆炸动画</button>
+    <label for="animationSlider">爆炸</label><input
+        type="range"
+        id="animationSlider"
+        min="1"
+        max="10"
+        step="0.01"
+        value="1"
+/>
+    <button id="clipX">X轴切割</button>
+    <button id="clipY">Y轴切割</button>
+    <button id="clipZ">Z轴切割</button>
+    <button id="resetClip">重置切割</button>
+</div>
+<div id="canvasContainer"></div>
+
+
+<script type="importmap">
+    {
+        "imports" : {
+            "three" : "../three.js-master/build/three.module.js",
+            "three/addons/" : "../three.js-master/examples/jsm/"
+        }
+    }
+</script>
+<script type="module">
+    import * as THREE from "three"
+    import {OrbitControls} from "three/addons/controls/OrbitControls.js"
+    //引入性能监视器stats.js,显示帧率
+    import Stats from 'three/addons/libs/stats.module.js';
+    import {FontLoader} from "three/addons/loaders/FontLoader.js";
+    import {TextGeometry} from "three/addons/geometries/TextGeometry.js";
+    // 获取按钮元素和渲染容器
+    const canvasContainer = document.getElementById('canvasContainer');
+
+    const height = window.innerHeight;//相机切面 高
+    const width = window.innerWidth;//宽
+    let camera, renderer;
+    //创建stats对象
+    const stats = new Stats();
+    //Stats.domElement:web页面上输出计算结果,一个div元素
+    stats.domElement.style.top = '30px'
+    canvasContainer.appendChild(stats.domElement);
+
+    //创建场景
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x083055)
+
+    // 创建网格模型对象
+    const fontPath = '../three.js-master/examples/fonts/';
+    const fontName = 'optimer', // helvetiker, optimer, gentilis, droid sans, droid serif
+        fontWeight = 'bold'; // normal bold
+    const fontLoader = new FontLoader();
+    let font;
+
+    initLight();
+    initCamera();
+    initRenderer();
+    //启动渲染循环
+    render();
+
+
+    //添加辅助观察的坐标系
+    const axesHelper = new THREE.AxesHelper(5);
+    scene.add(axesHelper);
+
+    function initLight() {
+        //添加光源
+        const ambient = new THREE.AmbientLight(0xffffff, 0.4);//环境光
+        scene.add(ambient);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);//平行光
+        directionalLight.position.set(100, 200, 150);
+        scene.add(directionalLight);
+    }
+
+
+    function initCamera() {
+        //创建相机
+        camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);//透明相机 模拟人眼或相机 一个四棱的视椎体 椎体内的物体为可渲染展示的内容 (切面角度,宽高比,近端视角切面距离,远端视角切面距离)
+        camera.position.set(-30, 40, 30);//相机在场景的位置
+        // camera.position.z = 5;//相机在场景的位置
+        camera.lookAt(0, 0, 0);//相机在场景中朝向的坐标位置
+    }
+
+    function initRenderer() {
+        //创建渲染器 相当于照片
+        renderer = new THREE.WebGLRenderer({
+            antialias: true,//抗锯齿
+            clippingEnabled: true,
+            localClippingEnabled: true //开启切割
+        });
+        canvasContainer.appendChild(renderer.domElement);
+        //渲染画布的宽与高
+        renderer.setSize(width, height);
+        //渲染3d场景图
+        renderer.render(scene, camera);
+        //渲染器编译方式
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        // renderer.outputColorSpace = THREE.outputColorSpace;
+    }
+
+    //相机轨道控制器 添加后可以移动相机视角
+    const controls = new OrbitControls(camera, renderer.domElement);
+
+    //渲染循环
+    function render() {
+        stats.update();//刷新帧率展示
+        // console.log(clipPlanes);
+        renderer.render(scene, camera);//重新渲染
+        // mesh.rotateY(0.01);//绕y轴旋转
+        // mesh.rotateX(0.01);//绕x轴旋转
+        requestAnimationFrame(render);//反复执行
+        // console.log(camera.position);
+    }
+
+    //监控窗口变化 重新设定视角长宽比及渲染画布长宽比 避免场景变形
+    window.onresize = () => {
+        renderer.setSize(window.innerWidth, window.innerHeight);//重新渲染画布大小
+        camera.aspect = window.innerWidth / window.innerHeight; //重设相机长宽比
+        camera.updateProjectionMatrix();//更新相机属性
+    }
+
+
+    fontLoader.load(fontPath + fontName + '_' + fontWeight + '.typeface.json', function (response) {
+        font = response;
+    });
+
+    setTimeout(() => {
+        const fontHeight = 1,
+            size = 7,
+            hover = 30,
+            curveSegments = 4,
+            bevelEnabled = true,
+            bevelThickness = 2,
+            bevelSize = 1.5;
+        console.log(font);
+        const textGeometry = new TextGeometry('566', {
+            font: font,
+            size: size,
+            height: 1
+        });
+        textGeometry.computeBoundingBox();
+        const textMeshMaterial = [
+            new THREE.MeshPhongMaterial( { color: 0xffffff, flatShading: true } ), // front
+            new THREE.MeshPhongMaterial( { color: 0xffffff } ) // side
+        ];
+        const centerOffset = - 0.5 * ( textGeometry.boundingBox.max.x - textGeometry.boundingBox.min.x );
+        const textMesh = new THREE.Mesh(textGeometry, textMeshMaterial);
+        textMesh.position.x = centerOffset;
+        console.log('textGeometry:', textGeometry);
+        console.log('textMesh:', textMesh);
+        console.log('textMesh:', textMesh.geometry);
+        scene.add(textMesh);
+        console.log("font", font);
+    },1000)
+</script>
+</body>
+</html>
