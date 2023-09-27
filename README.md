@@ -1,2 +1,2 @@
 # loadGltfModel
-# loadGltfModel
+对转换为gltf模型的rvt文件使用threejs导入并进行一些操作
