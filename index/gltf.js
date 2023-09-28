@@ -356,6 +356,24 @@ function onClick() {
 
             console.log('textGeometry:', textGeometry);
             textMesh.position.copy(selectedObject.userData.worldDistance);
+            // 计算模型中心
+            const explodeBox = new THREE.Box3();
+            explodeBox.setFromObject(selectedObject);
+            const explodeCenter = getWorldCenterPosition(explodeBox);
+            const explodeBox1 = new THREE.Box3();
+            explodeBox1.setFromObject(textMesh);
+
+            const explodeCenter1 = getWorldCenterPosition(explodeBox1);
+            const centerOffset = new THREE.Vector3();
+            let box3Helper = new THREE.Box3Helper(explodeBox);
+            let box3Helper1 = new THREE.Box3Helper(explodeBox1);
+            // scene.add(box3Helper);
+            // scene.add(box3Helper1);
+
+            centerOffset.subVectors(explodeCenter1, explodeCenter);
+            console.log("center",[explodeCenter,explodeCenter1])
+            console.log("center",[textMesh.position,selectedObject.userData.explodeCenter])
+            // textMesh.position.add(centerOffset);
             // 让新的Mesh正面朝向摄像机方向
             const cameraDirection = new THREE.Vector3();
             cameraDirection.copy(camera.position);
