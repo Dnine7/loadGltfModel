@@ -481,29 +481,32 @@ animationSlider.addEventListener('input', () => {
     }
     explodeModel(model, parseFloat(animationSlider.value));
 });
+let progressBarInterval
 playExplosionAnimation.addEventListener('click', () => {
     if (renderer.clippingPlanes.length > 0) {
         renderer.clippingPlanes = [];
     }
-    const progressBarInterval = setInterval(increaseProgressBar, 50);
-    setTimeout(() => {
+    progressBarInterval = setInterval(increaseProgressBar, 50);
+/*    setTimeout(() => {
         clearInterval(progressBarInterval);
-    }, 9050);
+    }, 9050);*/
 });
 let increment = 0.1; // 每次增加的宽度
 function increaseProgressBar() {
     const currentWidth = parseFloat(animationSlider.value);
     const targetWidth = 10; // 目标宽度
     const minWidth = 1; // 最小宽度
-    if (currentWidth < minWidth && increment < 0) {
-        return;
-    }
-    if (currentWidth >= targetWidth || currentWidth <= minWidth) {
+
+    if (currentWidth >= targetWidth || currentWidth < minWidth) {
         increment *= -1;
     }
     console.log(currentWidth);
     animationSlider.value = currentWidth + increment
     explodeModel(model, parseFloat(animationSlider.value));
+    if (currentWidth <= minWidth && increment < 0) {
+        clearInterval(progressBarInterval);
+        increment *= -1;
+    }
 }
 
 function getMaxBoundingBox(newBox) {
