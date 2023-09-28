@@ -361,11 +361,9 @@ function onClick() {
             cameraDirection.copy(camera.position);
             cameraDirection.y = textMesh.position.y;
             // camera.getWorldDirection(cameraDirection);
-            console.log("cameraDirection", cameraDirection);
             textMesh.lookAt(cameraDirection);
             console.log([textMesh.position,selectedObject.userData.worldDistance])
             textMesh.visible = true;
-            console.log(scene)
             console.log('选中的对象表面积为:', area);
         }
     } else {
@@ -374,6 +372,7 @@ function onClick() {
             selectedObject.material = originalMaterial;
             selectedObject = null;
             originalMaterial = null;
+            textMesh.visible = false;
         }
     }
 }
