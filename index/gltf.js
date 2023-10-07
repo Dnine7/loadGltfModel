@@ -73,6 +73,7 @@ function initFont() {
         textMeshMaterial = new THREE.MeshStandardMaterial({
             color: 0xeeffff
         })
+        textMeshMaterial.depthFunc = THREE.AlwaysDepth;
         textMesh = new THREE.Mesh(textGeometry, textMeshMaterial)
         textMesh.visible = false;
         scene.add(textMesh);
@@ -316,6 +317,7 @@ function onClick() {
 
         // 创建一个红色高亮材质
         const highlightMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+        highlightMaterial.depthFunc = THREE.AlwaysDepth;
 
         // 将选中的物体材质修改为红色高亮材质
         selectedObject.material = highlightMaterial;
@@ -337,9 +339,11 @@ function onClick() {
             console.log("font",font);
             textMesh.geometry = new TextGeometry(area.toFixed(2), {
                 font: font,
-                size: 3,
-                height: 1,
+                size: 2,
+                height: 0.1,
             });
+            textMesh.renderOrder = 1;
+
             /*const mesh1Center = new THREE.Vector3();
             selectedObject.geometry.computeBoundingBox();
             selectedObject.geometry.boundingBox.getCenter(mesh1Center);
