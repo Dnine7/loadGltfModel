@@ -16,11 +16,11 @@ const clipX = document.getElementById('clipX');
 const clipY = document.getElementById('clipY');
 const clipZ = document.getElementById('clipZ');
 const resetClip = document.getElementById('resetClip');
-let clipDirection = [1,1,1];
+let clipDirection = [1, 1, 1];
 
 const height = window.innerHeight;//相机切面 高
 const width = window.innerWidth;//宽
-let camera,renderer;
+let camera, renderer;
 //创建stats对象
 const stats = new Stats();
 //Stats.domElement:web页面上输出计算结果,一个div元素
@@ -51,7 +51,7 @@ const gltfPash = '../2gltf/';
 // const gltfName = 'ferrari.glb';
 // const gltfName = '洋房-建筑.gltf';
 const gltfName = 'NewProject.gltf';
-const gltfArray = [ 'NewProject.gltf','洋房-硬装.gltf'];
+const gltfArray = ['NewProject.gltf', '洋房-硬装.gltf'];
 //导入模型
 const gltfLoader = new GLTFLoader();
 const dracoLoader = new DRACOLoader();
@@ -93,11 +93,12 @@ initCamera();
 initRenderer();
 //启动渲染循环
 render();
-function loadGltf(){
-    gltfArray.forEach(gltfName =>{
+
+function loadGltf() {
+    gltfArray.forEach(gltfName => {
         gltfLoader.setPath(gltfPash)
             .load(gltfName, function (gltf) {
-                console.log("gltf",gltf.scene)
+                console.log("gltf", gltf.scene)
                 model[i] = gltf.scene
                 //重新设置位置
                 // model[i].position.set(-25, -25, -25);
@@ -133,8 +134,8 @@ function loadGltf(){
                 initExplodeModel(model[i]);
                 scene.add(model[i]);
                 i++;
-            }, function(res){
-                console.log('res.total, res.loaded',[res.total, res.loaded])
+            }, function (res) {
+                console.log('res.total, res.loaded', [res.total, res.loaded])
             });
     })
 }
@@ -152,14 +153,14 @@ function switchWireframe() {
     model.forEach(m => {
         m.traverse((child) => {
             if (child instanceof THREE.Mesh) {
-                const wireframeMaterial = new THREE.MeshStandardMaterial({ wireframe: true });
+                const wireframeMaterial = new THREE.MeshStandardMaterial({wireframe: true});
                 if (child instanceof THREE.Mesh) {
                     if (wireframeFlag) {
                         //获取子网格素材颜色
                         wireframeMaterial.color.copy(child.material.color);
                         // 应用线框材质到子网格
                         child.material = wireframeMaterial;
-                    }else {
+                    } else {
                         // 恢复原始材质
                         child.material = child.userData.originalMaterial;
                     }
@@ -181,6 +182,8 @@ function switchWireframe() {
 
 //添加辅助观察的坐标系
 const axesHelper = new THREE.AxesHelper(5);
+axesHelper.material.depthFunc = THREE.AlwaysDepth;
+axesHelper.renderOrder = 1;
 scene.add(axesHelper);
 
 function initLight() {
@@ -197,7 +200,7 @@ function initCamera() {
     //创建相机
     camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);//透明相机 模拟人眼或相机 一个四棱的视椎体 椎体内的物体为可渲染展示的内容 (切面角度,宽高比,近端视角切面距离,远端视角切面距离)
     camera.position.set(-30, 40, 30);//相机在场景的位置
-// camera.position.z = 5;//相机在场景的位置
+    // camera.position.z = 5;//相机在场景的位置
     camera.lookAt(0, 0, 0);//相机在场景中朝向的坐标位置
 }
 
@@ -209,13 +212,13 @@ function initRenderer() {
         localClippingEnabled: true //开启切割
     });
     canvasContainer.appendChild(renderer.domElement);
-//渲染画布的宽与高
+    //渲染画布的宽与高
     renderer.setSize(width, height);
-//渲染3d场景图
+    //渲染3d场景图
     renderer.render(scene, camera);
-//渲染器编译方式
+    //渲染器编译方式
     renderer.outputEncoding = THREE.sRGBEncoding;
-// renderer.outputColorSpace = THREE.outputColorSpace;
+    // renderer.outputColorSpace = THREE.outputColorSpace;
 }
 
 //相机轨道控制器 添加后可以移动相机视角
@@ -252,7 +255,6 @@ function render() {
 }
 
 
-
 //监控窗口变化 重新设定视角长宽比及渲染画布长宽比 避免场景变形
 window.onresize = () => {
     renderer.setSize(window.innerWidth, window.innerHeight);//重新渲染画布大小
@@ -276,6 +278,7 @@ toggleClickButton.addEventListener('click', () => {
         selectedObject.material = originalMaterial;
         selectedObject = null;
         originalMaterial = null;
+        textMesh.visible = false;
     }
     toggleClickButton.innerHTML = text;
 });
@@ -316,7 +319,7 @@ function onClick() {
         originalMaterial = selectedObject.material.clone();
 
         // 创建一个红色高亮材质
-        const highlightMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+        const highlightMaterial = new THREE.MeshBasicMaterial({color: 0xff0000});
         highlightMaterial.depthFunc = THREE.AlwaysDepth;
 
         // 将选中的物体材质修改为红色高亮材质
@@ -327,64 +330,39 @@ function onClick() {
             // 获取几何体
             let geometry = selectedObject.geometry;
             console.log("geometry", geometry);
-            // 如果几何体是BufferGeometry，需要先将其转换为Geometry
-            if (geometry.isBufferGeometry) {
-                console.log("BufferGeometry");
-            }
             const vertices = geometry.attributes.position.array;
             const indices = geometry.index.array;
-            console.log("geometry toNonIndexed", geometry);
             // 计算表面积
-            const area = calculateSurfaceArea(vertices,indices);
-            console.log("font",font);
+            const area = calculateSurfaceArea(vertices, indices);
+            console.log("font", font);
             textMesh.geometry = new TextGeometry(area.toFixed(2), {
                 font: font,
                 size: 2,
                 height: 0.1,
             });
             textMesh.renderOrder = 1;
-
-            /*const mesh1Center = new THREE.Vector3();
-            selectedObject.geometry.computeBoundingBox();
-            selectedObject.geometry.boundingBox.getCenter(mesh1Center);
-            selectedObject.localToWorld(mesh1Center);
-            const mesh2Center = new THREE.Vector3();
-            textMesh.geometry.computeBoundingBox();
-            textMesh.geometry.boundingBox.getCenter(mesh2Center);
-            textMesh.localToWorld(mesh2Center);
-            const centerOffset = new THREE.Vector3();
-            centerOffset.subVectors(mesh1Center, mesh2Center);
-            // 将mesh2移动以使其中心点与mesh1的中心点重合
-            textMesh.position.add(centerOffset);*/
-
-
-            console.log('textGeometry:', textGeometry);
-            textMesh.position.copy(selectedObject.userData.worldDistance);
-            // 计算模型中心
-            const explodeBox = new THREE.Box3();
-            explodeBox.setFromObject(selectedObject);
-            const explodeCenter = getWorldCenterPosition(explodeBox);
-            const explodeBox1 = new THREE.Box3();
-            explodeBox1.setFromObject(textMesh);
-
-            const explodeCenter1 = getWorldCenterPosition(explodeBox1);
-            const centerOffset = new THREE.Vector3();
-            let box3Helper = new THREE.Box3Helper(explodeBox);
-            let box3Helper1 = new THREE.Box3Helper(explodeBox1);
-            // scene.add(box3Helper);
-            // scene.add(box3Helper1);
-
-            centerOffset.subVectors(explodeCenter1, explodeCenter);
-            console.log("center",[explodeCenter,explodeCenter1])
-            console.log("center",[textMesh.position,selectedObject.userData.explodeCenter])
-            // textMesh.position.add(centerOffset);
             // 让新的Mesh正面朝向摄像机方向
             const cameraDirection = new THREE.Vector3();
             cameraDirection.copy(camera.position);
             cameraDirection.y = textMesh.position.y;
-            // camera.getWorldDirection(cameraDirection);
             textMesh.lookAt(cameraDirection);
-            console.log([textMesh.position,selectedObject.userData.worldDistance])
+            // 计算模型中心
+            const explodeBox = new THREE.Box3();
+            explodeBox.setFromObject(selectedObject);
+            const explodeCenter = new THREE.Vector3();
+            explodeBox.getCenter(explodeCenter);
+
+            const worldPosition = new THREE.Vector3();
+            selectedObject.getWorldPosition(worldPosition);
+            console.log(explodeCenter, worldPosition);
+
+            const textBox = new THREE.Box3();
+            textBox.setFromObject(textMesh);
+            const textCenter = new THREE.Vector3();
+            textBox.getCenter(textCenter);
+            textMesh.position.sub(textCenter);
+            textMesh.position.add(explodeCenter);
+
             textMesh.visible = true;
             console.log('选中的对象表面积为:', area);
         }
@@ -402,12 +380,10 @@ function onClick() {
 // 初始化爆炸数据保存到每个mesh的userdata上
 function initExplodeModel(modelObject) {
     if (!modelObject) return;
-
     // 计算模型中心
     const explodeBox = new THREE.Box3();
     explodeBox.setFromObject(modelObject);
     const explodeCenter = getWorldCenterPosition(explodeBox);
-
     const meshBox = new THREE.Box3();
 
     // 遍历整个模型，保存数据到userData上，以便爆炸函数使用
@@ -437,8 +413,8 @@ function getWorldCenterPosition(box, scalar = 0.5) {
 }
 
 // 模型爆炸函数
-function explodeModel(model, scalar){
-    model.forEach( m => {
+function explodeModel(model, scalar) {
+    model.forEach(m => {
         m.traverse(function (value) {
             if (!value.isMesh || !value.userData.originPosition) return;
             const distance = value.userData.worldDir
@@ -456,6 +432,7 @@ function explodeModel(model, scalar){
     })
 
 }
+
 clipX.addEventListener('click', () => {
     isClipX = !isClipX;
     if (renderer.clippingPlanes.length === 0) {
@@ -491,9 +468,9 @@ playExplosionAnimation.addEventListener('click', () => {
         renderer.clippingPlanes = [];
     }
     progressBarInterval = setInterval(increaseProgressBar, 50);
-/*    setTimeout(() => {
-        clearInterval(progressBarInterval);
-    }, 9050);*/
+    /*    setTimeout(() => {
+            clearInterval(progressBarInterval);
+        }, 9050);*/
 });
 let increment = 0.1; // 每次增加的宽度
 function increaseProgressBar() {
