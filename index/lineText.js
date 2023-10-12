@@ -6,14 +6,19 @@ const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerH
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
-
+//添加光源
+const ambient = new THREE.AmbientLight(0xffffff, 1);//环境光
+scene.add(ambient);
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1);//平行光
+directionalLight.position.set(100, 200, 150);
+scene.add(directionalLight);
 // 2. 设置场景背景色为灰色
 scene.background = new THREE.Color(0xCCCCCC);
 
 // 3. 创建一个控制器以实现视角旋转
 const controls = new OrbitControls(camera, renderer.domElement);
 
-// 4. 创建您的3D模型并添加到场景中
+// 4. 创建3D模型并添加到场景中
 const geometry = new THREE.BoxGeometry(1, 1, 1);
 const material = new THREE.MeshBasicMaterial({
     color: 0xffff00,
@@ -36,9 +41,6 @@ const point1Mesh = new THREE.Mesh(pointGeometry, pointMaterial);
 const point2Mesh = new THREE.Mesh(pointGeometry, pointMaterial);
 let lineMaterial = new THREE.LineBasicMaterial({
     color: 0xff0000,
-    depthFunc: THREE.AlwaysDepth, // 使用AlwaysDepth
-    depthTest: false, // 禁用深度测试
-    depthWrite: false, // 禁用深度写入
 });
 let lineGeometry = new THREE.BufferGeometry();
 let line = new THREE.Line(lineGeometry, lineMaterial);
