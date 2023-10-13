@@ -299,7 +299,6 @@ function onClick() {
     }
     // 更新射线的起点和方向
     raycaster.setFromCamera(mouse, camera);
-
     // 执行射线检测
     const intersects = raycaster.intersectObjects(scene.children, true);
 
@@ -430,7 +429,6 @@ function explodeModel(model, scalar) {
             localPosition && value.position.copy(localPosition);
         });
     })
-
 }
 
 clipX.addEventListener('click', () => {
