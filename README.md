@@ -1,6 +1,6 @@
 # loadGltfModel
 
-gltf文件包含功能：
+## gltf文件包含功能：
 
 1. 导入gltf模型
 
@@ -334,8 +334,102 @@ gltf文件包含功能：
 
      
 
-lineText文件包含功能： 
+## lineText文件包含功能： 
 
-​	1.鼠标点击自动吸附被点击对象距离点击点最近的顶点 
+ 1. 鼠标点击自动吸附被点击对象距离点击点最近的顶点 ，连接两点并输出距离
 
-​	2.连接两点计算距离
+    * 创建一个mesh并取得所有顶点信息
+      ``` js
+      const cube = new THREE.Mesh(geometry, material);
+      scene.add(cube);
+      //在实际应用中应先获取鼠标点选部分再取顶点数组
+      const vertices = cube.geometry.attributes.position.array;
+      ```
+
+    * 创建两个小球用于显示点
+      ``` js
+      const pointGeometry = new THREE.SphereGeometry(0.02, 32, 32);
+      const pointMaterial = new THREE.MeshBasicMaterial({ color: 0xff00ff });
+      const point1Mesh = new THREE.Mesh(pointGeometry, pointMaterial);
+      const point2Mesh = new THREE.Mesh(pointGeometry, pointMaterial);
+      let lineMaterial = new THREE.LineBasicMaterial({
+          color: 0xff0000,
+      });
+      let lineGeometry = new THREE.BufferGeometry();
+      let line = new THREE.Line(lineGeometry, lineMaterial);
+      point1Mesh.visible = false;
+      point2Mesh.visible = false;
+      line.visible = false;
+      
+      scene.add(point1Mesh);
+      scene.add(point2Mesh);
+      ```
+
+    * 利用射线检测点击点,并自动替换为距离点击点最近的顶点
+      ``` js
+      function onMouseDown(event) {
+          // 获取鼠标点击位置
+          mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+          mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+      
+          // 设置射线的起点和方向
+          raycaster.setFromCamera(mouse, camera);
+      
+          // 计算射线和模型的交点
+          const intersects = raycaster.intersectObject(cube);
+          const closestVertex = findClosestVertex(intersects[0].point, vertices);
+          console.log(`最近的顶点坐标: (${closestVertex.x}, ${closestVertex.y}, ${closestVertex.z})`);
+          if (intersects.length > 0) {
+              const selectedPoint = closestVertex;
+              selectedPoints.push(selectedPoint);
+      
+              // 显示第一个点
+              if (!isFirstPointSelected) {
+                  point1Mesh.position.copy(selectedPoint);
+                  point1Mesh.visible = true;
+                  point2Mesh.visible = false;
+                  line.visible = false;
+                  isFirstPointSelected = true;
+              } else {
+                  // 6. 计算所选点之间的距离
+                  if (selectedPoints.length === 2) {
+                      const distance = selectedPoints[0].distanceTo(selectedPoints[1]);
+                      point2Mesh.position.copy(selectedPoints[1]);
+                      point2Mesh.visible = true;
+                      console.log(`距离: ${distance}`);
+      
+                      // 7. 创建连接线
+                      lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
+                      lineGeometry = new THREE.BufferGeometry().setFromPoints(selectedPoints);
+                      line = new THREE.Line(lineGeometry, lineMaterial);
+                      line.renderOrder = 1;
+                      scene.add(line);
+                      console.log(lineMaterial.depthFunc, line.renderOrder);
+                      isFirstPointSelected = false;
+                      // 清空已选择的点
+                      selectedPoints.length = 0;
+                  }
+              }
+          }
+      }
+      
+      // 寻找最近的顶点
+      function findClosestVertex(point, vertices) {
+          let closestVertex = new THREE.Vector3();
+          let minDistance = Number.MAX_VALUE;
+      
+          for (let i = 0; i < vertices.length; i += 3) {
+              const vertex = new THREE.Vector3(vertices[i], vertices[i + 1], vertices[i + 2]);
+              const distance = point.distanceTo(vertex);
+      
+              if (distance < minDistance) {
+                  minDistance = distance;
+                  closestVertex = vertex.clone();
+              }
+          }
+      
+          return closestVertex;
+      }
+      ```
+    
+    * 用计算出来的数字建立文字mesh，并将其位置置于连线的中心点，方向朝向摄像机（参考显示计算面积）
