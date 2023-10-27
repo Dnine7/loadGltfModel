@@ -32,7 +32,6 @@ const vertices = cube.geometry.attributes.position.array;
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 let selectedPoints = [];
-let isFirstPointSelected = false;
 
 document.addEventListener('mousedown', onMouseDown, false);
 const pointGeometry = new THREE.SphereGeometry(0.02, 32, 32);
@@ -77,14 +76,12 @@ function onMouseDown(event) {
             pointMesh[num - 1].position.copy(selectedPoint);
             pointMesh[num - 1].visible = true;
             for (let i = num; i < 3; i++) {
-                console.log("隐藏", i);
                 pointMesh[i].visible = false;
             }
             line.visible = false;
         } else {
-            // 6. 计算所选点之间的距离
+            // 6. 计算所选点之间的角度
             if (num === 3) {
-                // const distance = selectedPoints[0].distanceTo(selectedPoints[1]);
                 point3Mesh.position.copy(selectedPoints[2]);
                 point3Mesh.visible = true;
                 const vectorAB = new THREE.Vector3().copy(selectedPoints[1]).sub(selectedPoints[0]).normalize();
