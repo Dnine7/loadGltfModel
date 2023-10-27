@@ -61,7 +61,6 @@ initFont();
 
 let textGeometry, textMeshMaterial, textMesh;
 
-
 function initFont() {
     fontLoader.load(fontPath, function (f) {
         font = f;
